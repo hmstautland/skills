@@ -196,6 +196,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 90px; }
     <a href="#decisions" id="toc-decisions" hidden>Open decisions</a>
     <a href="#method">Method</a>
     <a href="#changes">Change log</a>
+    <a href="#" id="toc-project" target="_blank" rel="noopener" hidden>GitHub project</a>
     <a href="%%TASKS_HREF%%" class="tasks">Tasks &rarr;</a>
   </nav>
 
@@ -343,6 +344,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 90px; }
       var links = el("div", "links");
       var url = fileUrl(f);
       if (url) { var a = el("a", null, "Open " + String(f.file).split(":")[0] + " at " + shortCommit()); a.href = url; a.target = "_blank"; a.rel = "noopener"; links.appendChild(a); }
+      if (f.issue && f.issue.url) { var gi = el("a", null, "Issue #" + f.issue.number); gi.href = f.issue.url; gi.target = "_blank"; gi.rel = "noopener"; links.appendChild(gi); }
       if (f.also_reported_by && f.also_reported_by.length) links.appendChild(el("span", "area", "Also found by: " + f.also_reported_by.join(", ")));
       if (inLog && f.status === "partly") { var o = el("a", null, "See what is still open"); o.href = "#f" + f.id; links.appendChild(o); }
       if (links.childNodes.length) body.appendChild(links);
@@ -358,6 +360,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 90px; }
   if (D.reviewed) eyebrow.push("reviewed " + fmtDate(D.reviewed));
   if (D.updated) eyebrow.push("last updated " + fmtDate(D.updated));
   document.getElementById("eyebrow").textContent = eyebrow.join(" · ");
+  if (D.tracker && D.tracker.project_url) { var tp = document.getElementById("toc-project"); tp.href = D.tracker.project_url; tp.hidden = false; }
 
   var open = F.filter(isOpen);
   var fixedCount = F.length - open.length;

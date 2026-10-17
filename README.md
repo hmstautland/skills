@@ -28,6 +28,12 @@ hardening). Fixed findings move to Done when the review is updated. Anyone can d
 and add their own tasks; those changes stay in their browser until they use "Copy my
 changes" and give the text to their agent, which writes them into the review.
 
+If the repository is on GitHub, the agent then offers to create a GitHub project named
+after the review date (e.g. "Review 17 October 2026") with one issue per open finding and
+suggested task, in the same columns as the board. Later updates close the issues of fixed
+findings, open issues for new ones, and leave moves made on GitHub alone. This needs the
+GitHub CLI with project access: `gh auth login`, then `gh auth refresh -s project`.
+
 Ask your agent to "review the project", or "update the review" after fixes.
 
 The plugin also installs a prompt hook. When a prompt asks for a review or audit, the agent
@@ -63,5 +69,5 @@ folder anywhere that serves static files.
 
 ### Requirements
 
-Python 3 (for the page builder). The review data is kept in the reviewed project at
-`.review/review.json`.
+Python 3 (for the page builder), and the GitHub CLI for the optional GitHub project. The
+review data is kept in the reviewed project at `.review/review.json`.

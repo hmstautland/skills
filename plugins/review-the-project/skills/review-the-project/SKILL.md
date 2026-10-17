@@ -38,6 +38,8 @@ These instructions name tools by what they do. Use whatever your agent has:
 - `assets/page_template.html`, `assets/tasks_template.html` — the two pages, rendered from
   the data. Don't hand-edit the built HTML: change the data and rebuild, so the next
   update doesn't lose your edit.
+- `scripts/sync_github.py <review.json>` — mirrors the task board to a GitHub project with
+  one issue per card (see GitHub project below). `--dry-run` prints the plan.
 - `references/data-format.md` — the review.json schema, including tasks and board changes.
   Read before writing or editing the file.
 - `references/review-process.md` — scouting, reviewer/verifier prompts and schemas, and how
@@ -55,6 +57,7 @@ These instructions name tools by what they do. Use whatever your agent has:
 3. Build and publish (below).
 4. In chat, keep it short: the abstract, the top priorities, decisions the user needs to
    make, and the link. The pages hold the detail.
+5. Offer the GitHub project (below) if the repo is on GitHub.
 
 ## Update
 
@@ -75,6 +78,7 @@ These instructions name tools by what they do. Use whatever your agent has:
    themselves, but the prose doesn't. The abstract describes only the current state —
    don't recount the fixes there; that history lives in the change log.
 7. Build and publish again (to the same `artifact_url`, where there is one).
+8. If review.json has a `tracker`, sync it (below).
 
 ## Build and publish
 
@@ -98,6 +102,40 @@ the user once that others can open it only after it is shared from its Share men
 **Without it**: build to `.review/site/` and give the user the path to
 `.review/site/index.html` to open in a browser. Both pages are self-contained HTML, so
 the folder can also be hosted anywhere static files can be served.
+
+## GitHub project
+
+After the first review is published, if `origin` is a GitHub repo, ask the user whether
+to create a GitHub project for it, named after the review date (e.g. "Review 17 October
+2026"), with one issue per open finding and suggested task, placed in the same columns as
+the task board. Creating issues is visible to everyone with access to the repo, so ask
+first and say how many issues it would create (`--dry-run` tells you). Offer:
+- all open findings and tasks,
+- only high and medium findings plus tasks (`--min-severity medium`), or
+- no project.
+
+Then run, from the project root:
+
+```
+python3 <skill-dir>/scripts/sync_github.py .review/review.json [--min-severity medium] [--no-tasks]
+```
+
+It needs the GitHub CLI logged in with project access (`gh auth login`, then
+`gh auth refresh -s project`); if it stops on missing access, tell the user that command.
+It writes the project and the issue numbers into review.json, so rebuild and republish
+the pages afterwards: both then link to the project and to each issue. If it stops part
+way, run it again; it continues without creating duplicates.
+
+**On later updates**, when review.json has a `tracker`: run it with `--dry-run`, tell the
+user in one line what it will do (new issues, issues to close, cards to move) and run it
+when they agree. It closes the issues of fixed findings and done tasks with a comment,
+creates issues for new ones, and only moves a card on GitHub when the review's column
+changed, so moves made on GitHub are kept. It reports issues someone closed on GitHub
+that the review still lists as open: check the code for each, then mark the finding fixed
+(with a change-log entry) or tell the user it is still open.
+
+For a repo hosted elsewhere (GitLab, Azure DevOps, Bitbucket), say that only GitHub is
+supported for now; don't improvise issue creation with another tool unless the user asks.
 
 ## Writing guidance
 

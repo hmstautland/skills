@@ -139,6 +139,15 @@ added. Each needs a concrete reason grounded in this project, not generic best p
   `done_note` to what was done; don't delete it.
 - `source`: `review` (proposed by the review) or `owner` (added by a person).
 
+**Tracker** — written by `scripts/sync_github.py`; don't edit by hand.
+- Top-level `tracker`: `type` (`github`), `repo`, `owner`, `project_number`,
+  `project_url`, `project_title`, `min_severity`, `tasks` (whether tasks get issues),
+  `created`.
+- On each finding and task that has an issue, `issue`: `number`, `url`, `item_id` (the
+  project card), `column` (the column last sent to GitHub) and `state` (`open` /
+  `closed`). Keep these when you edit a finding; they are how the next sync finds its
+  issue. A finding without `issue` gets a new issue on the next sync.
+
 **Board changes** — the board saves moves and added tasks only in the viewer's browser.
 Its "Copy my changes" button gives text starting "Apply these task board changes to the
 review", with `board_changes.moves` (`finding` or `task` id, `from`, `to`) and
