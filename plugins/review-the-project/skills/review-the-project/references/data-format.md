@@ -39,7 +39,23 @@ user picked another place.
       "also_reported_by": ["Unused-code sweep"],
       "status": "open",
       "status_note": "",
-      "status_date": ""
+      "status_date": "",
+      "column": "backlog"
+    }
+  ],
+
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Add rate limiting to the login endpoint",
+      "text": "Why it matters and where to start.",
+      "area": "API",
+      "files": ["src/api/auth.py"],
+      "effort": "small",
+      "findings": [7],
+      "column": "backlog",
+      "source": "review",
+      "done_note": ""
     }
   ],
 
@@ -105,6 +121,31 @@ reviewers in `also_reported_by`).
 - Don't merge two reports as duplicates if fixing one leaves part of the other
   open; keep them separate so each can carry its own status.
 - Never delete a fixed finding: the change log shows it.
+
+- `column` (optional): where the finding sits on the task board — `backlog` (default),
+  `todo` or `doing`. Fixed findings are always in Done and partly fixed ones default to
+  `doing`, so set it only when the owner planned or started work. A finding is never put
+  in Done by `column`; only `status: "fixed"` does that.
+
+**Tasks** — the task board (`tasks.html`) shows every finding except accepted risks as a
+card, plus these tasks. They are improvements that aren't findings: hardening and
+capacity work the code doesn't have yet (rate limiting, request size limits, a context
+or token budget, backups, monitoring), missing tests on risky paths, and tasks the owner
+added. Each needs a concrete reason grounded in this project, not generic best practice.
+- `id`: stable integer, never reused. `title`, `text` required (`text` says why and
+  where to start). `area`, `files` and `effort` (`small` / `medium` / `large`) optional.
+- `findings`: related finding ids, when the task would also address them.
+- `column`: `backlog` (default), `todo`, `doing` or `done`. When a task is done, set
+  `done_note` to what was done; don't delete it.
+- `source`: `review` (proposed by the review) or `owner` (added by a person).
+
+**Board changes** — the board saves moves and added tasks only in the viewer's browser.
+Its "Copy my changes" button gives text starting "Apply these task board changes to the
+review", with `board_changes.moves` (`finding` or `task` id, `from`, `to`) and
+`board_changes.added` (`title`, `text`, `column`). To apply it: set `column` on each
+moved finding or task; add each added task with a fresh id and `source: "owner"`. A
+finding moved to Done is a claim that it is fixed: check the code, then mark it
+`fixed` (with a change-log entry) or leave it in `doing` and say why.
 
 **Change log** — one entry per coherent change. `fixes` lists findings that are
 now `fixed`, `partly` those now `partly`. The builder refuses to build when a

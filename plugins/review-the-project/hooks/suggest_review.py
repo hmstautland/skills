@@ -27,8 +27,9 @@ FIX_WORDS = re.compile(
 )
 
 ASK = (
-    "Ask the user with AskUserQuestion; ask at most once per conversation, and not again "
-    "if they already answered or the request is clearly unrelated to code quality."
+    "Ask the user (with AskUserQuestion where available); ask at most once per "
+    "conversation, and not again if they already answered or the request is clearly "
+    "unrelated to code quality."
 )
 
 
@@ -76,8 +77,9 @@ def main() -> int:
     try:
         data = json.load(sys.stdin)
         prompt = str(data.get("prompt", "")).strip()
-        # Explicit slash commands and direct mentions of the skill need no nudge.
-        if not prompt or prompt.startswith("/") or SKILL in prompt:
+        # Explicit slash commands, direct mentions of the skill and pasted board
+        # changes (which the skill already handles) need no nudge.
+        if not prompt or prompt.startswith("/") or SKILL in prompt or "task board changes" in prompt.lower():
             return 0
         context = context_for(prompt, find_review(Path(data.get("cwd") or ".")))
     except Exception:

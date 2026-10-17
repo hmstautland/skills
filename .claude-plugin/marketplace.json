@@ -8,7 +8,7 @@
     {
       "name": "review-the-project",
       "source": "./plugins/review-the-project",
-      "description": "Verified code review of a repository, published as a living review page (abstract, bugs, risks, shortcomings, change log) that is kept up to date as fixes land."
+      "description": "Verified code review of a repository, published as a living review page (abstract, bugs, risks, shortcomings, change log) and a task board, kept up to date as fixes land."
     }
   ]
 }

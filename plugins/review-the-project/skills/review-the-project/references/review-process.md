@@ -21,10 +21,17 @@ after the first round, a **completeness critic**.
 
 ## 2. Fan out
 
-If the user opted into multi-agent orchestration (or ultracode is on), use the Workflow
-tool: `pipeline(areas, review, verifyEachFinding)` then a critic agent whose findings are
-verified too. Otherwise use parallel Agent calls — one per area — and then one verifier
-agent per batch of findings. Either way: reviewers are read-only and must not edit files.
+In Claude Code: if the user opted into multi-agent orchestration (or ultracode is on), use
+the Workflow tool: `pipeline(areas, review, verifyEachFinding)` then a critic agent whose
+findings are verified too. Otherwise use parallel Agent calls — one per area — and then one
+verifier agent per batch of findings.
+
+In other agents: use subagents the same way if the agent has them. If it doesn't, review
+the areas one after another, then verify the findings in a separate pass using the
+verifier prompt below, taking the verifier's side: try to disprove each finding from the
+code rather than re-reading your own reasoning.
+
+Either way: reviewers are read-only and must not edit files.
 
 ### Shared preamble (prepend to every reviewer and verifier prompt)
 
@@ -106,7 +113,24 @@ was missed: cross-file contract mismatches (payloads vs the code consuming them)
 nobody looked at closely, test gaps on the riskiest paths, docs that no longer match the
 code. Verify its findings the same way.
 
-## 3. Synthesize into review.json
+## 3. Propose tasks
+
+After verification, one more agent (or pass) proposes improvement tasks for the board:
+work the project would benefit from that isn't a defect in existing code. Give it the
+scout facts, the reviewers' summaries and the surviving finding titles. Ask for 4–10
+tasks, each with a concrete reason in *this* code, for example:
+- rate limiting or request size limits on an endpoint that can be abused,
+- a context, token or memory budget where input can grow without bound,
+- security hardening (auth on an admin route, secrets out of the repo, dependency pinning),
+- tests for the riskiest untested path, backups, logging or monitoring that is missing.
+
+Drop generic advice that would apply to any project. Where a task would also resolve
+findings, list their ids in `findings`. Tasks are suggestions, so they are not verified
+like findings, but each must name the files or behaviour it is about.
+
+Task schema: `{"title", "text", "area", "files": [], "effort": "small|medium|large", "findings": []}`.
+
+## 4. Synthesize into review.json
 
 - Drop refuted findings entirely. `confirmed` → `verification: "verified"`;
   `partially` → `"corrected"` with the corrected statement in `corrected`.
@@ -120,3 +144,5 @@ code. Verify its findings the same way.
 - `method`: areas covered, how many agents, baseline test result, severity context
   (e.g. "judged for a single-user local app"), anything not covered.
 - `summaries`: each reviewer's `summary`, so readers can see the overall conclusions.
+- `tasks`: the proposed tasks with stable integer ids, `column: "backlog"` and
+  `source: "review"`.

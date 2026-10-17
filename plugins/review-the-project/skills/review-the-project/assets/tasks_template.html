@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>%%TITLE%%</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: the review's task board. Four columns left to right (Backlog, To do, In progress, Done),
+   cards carry the review's severity edge; suggestions use the accent edge. Same tokens as the review page. */
+:root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --sunken: #eaeef3;
+  --ink: #17202c;
+  --muted: #586374;
+  --line: #d8dee6;
+  --accent: #1d5f8a;
+  --accent-soft: #e2edf5;
+  --high: #b42318;
+  --high-soft: #fbe9e7;
+  --med: #a64b00;
+  --med-soft: #fcefdf;
+  --low: #5d6878;
+  --low-soft: #e9edf2;
+  --ok: #10703f;
+  --ok-soft: #e1f3e8;
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --r: 6px;
+  color-scheme: light;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e131a; --surface: #151c26; --sunken: #1b2430; --ink: #e5eaf1; --muted: #9aa5b5; --line: #2a3442;
+    --accent: #7ab8e3; --accent-soft: #1a2d3d;
+    --high: #ff8a7a; --high-soft: #3a1d1b; --med: #f5b85a; --med-soft: #3a2a14; --low: #a3adbb; --low-soft: #242d39;
+    --ok: #6fd39c; --ok-soft: #163322;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e131a; --surface: #151c26; --sunken: #1b2430; --ink: #e5eaf1; --muted: #9aa5b5; --line: #2a3442;
+  --accent: #7ab8e3; --accent-soft: #1a2d3d;
+  --high: #ff8a7a; --high-soft: #3a1d1b; --med: #f5b85a; --med-soft: #3a2a14; --low: #a3adbb; --low-soft: #242d39;
+  --ok: #6fd39c; --ok-soft: #163322;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 64px;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 1360px; margin: 0 auto; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px;
+}
+code { font-family: var(--font-mono); font-size: 0.87em; background: var(--sunken); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; letter-spacing: -0.005em; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+
+header.top { padding-block: 32px 20px; border-bottom: 1px solid var(--line); display: grid; gap: 12px; }
+header.top h1 { font-size: clamp(1.9rem, 4.5vw, 2.6rem); font-weight: 700; line-height: 1.05; }
+.back { font-size: 0.9rem; text-decoration: none; }
+.back:hover { text-decoration: underline; }
+.lede { margin: 0; color: var(--muted); max-width: 72ch; }
+.tally { display: flex; flex-wrap: wrap; gap: 10px 28px; font-variant-numeric: tabular-nums; }
+.tally div { display: grid; }
+.tally b { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; line-height: 1.1; }
+.tally span { font-size: 0.8rem; color: var(--muted); }
+.tally .done b { color: var(--ok); }
+
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 3; background: var(--bg); padding-block: 10px; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.bar input[type="search"] { flex: 1 1 220px; min-width: 0; font: inherit; font-size: 0.95rem; padding: 8px 12px; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; background: var(--surface); }
+.seg button { font: inherit; font-size: 0.85rem; padding: 6px 11px; border: 0; border-left: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
+.seg button:first-child { border-left: 0; }
+.seg button[aria-pressed="true"] { color: var(--ink); background: var(--sunken); font-weight: 600; }
+.btn { font: inherit; font-size: 0.87rem; padding: 7px 12px; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; white-space: nowrap; }
+.btn:hover { border-color: var(--muted); }
+.btn:disabled { opacity: 0.5; cursor: default; border-color: var(--line); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 600; }
+.btn.danger { color: var(--high); }
+.btn.small { font-size: 0.78rem; padding: 3px 8px; }
+.bar .end { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+
+.local { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 0.85rem; color: var(--muted); padding-block: 10px; }
+.local b { color: var(--ink); font-weight: 600; }
+.status { font-size: 0.85rem; color: var(--ok); }
+
+form.add { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 10px; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) auto; align-items: end; margin-block: 4px 12px; }
+form.add label { display: grid; gap: 4px; font-size: 0.78rem; color: var(--muted); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; min-width: 0; }
+form.add input, form.add textarea, form.add select { font: inherit; font-size: 0.93rem; text-transform: none; letter-spacing: 0; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: var(--r); padding: 7px 10px; min-width: 0; width: 100%; }
+form.add textarea { resize: vertical; min-height: 38px; height: 38px; }
+form.add .actions { display: flex; gap: 8px; }
+
+.board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: start; margin-top: 8px; }
+.col { background: var(--sunken); border-radius: var(--r); padding: 10px; display: grid; gap: 8px; min-width: 0; align-content: start; min-height: 160px; border: 2px solid transparent; }
+.col.over { border-color: var(--accent); background: var(--accent-soft); }
+.col > header { display: grid; gap: 2px; padding: 2px 4px 4px; }
+.col h2 { font-size: 1.1rem; font-weight: 700; display: flex; gap: 8px; align-items: baseline; }
+.col h2 .n { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
+.col > header p { margin: 0; font-size: 0.8rem; color: var(--muted); }
+.cards { display: grid; gap: 8px; }
+.empty { padding: 14px; text-align: center; color: var(--muted); font-size: 0.85rem; border: 1px dashed var(--line); border-radius: var(--r); }
+.more { justify-self: start; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--low); border-radius: var(--r); padding: 10px 12px; display: grid; gap: 7px; min-width: 0; cursor: grab; }
+.card.sev-high { border-left-color: var(--high); }
+.card.sev-medium { border-left-color: var(--med); }
+.card.sugg { border-left-color: var(--accent); }
+.card.mine { border-left-style: dashed; border-left-color: var(--accent); }
+.card.in-done { border-left-color: var(--ok); }
+.card.dragging { opacity: 0.45; }
+.card .t { font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
+.card .t a { color: var(--ink); text-decoration: none; }
+.card .t a:hover { color: var(--accent); text-decoration: underline; }
+.card .meta { display: flex; flex-wrap: wrap; gap: 5px 7px; align-items: center; }
+.loc { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); overflow-wrap: anywhere; }
+.area { font-size: 0.78rem; color: var(--muted); }
+.card details { font-size: 0.88rem; }
+.card details summary { cursor: pointer; color: var(--muted); font-size: 0.8rem; }
+.card details .txt { padding-top: 6px; }
+.card .foot { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; justify-content: space-between; }
+.card .foot select { font: inherit; font-size: 0.8rem; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: var(--r); padding: 3px 6px; max-width: 100%; }
+.card .flags { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.chip { display: inline-flex; align-items: center; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.03em; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); background: var(--surface); white-space: nowrap; }
+.chip.sev-high { color: var(--high); background: var(--high-soft); border-color: transparent; }
+.chip.sev-medium { color: var(--med); background: var(--med-soft); border-color: transparent; }
+.chip.sev-low { color: var(--low); background: var(--low-soft); border-color: transparent; }
+.chip.sugg, .chip.mine { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
+.chip.partly, .chip.pending { color: var(--med); background: var(--med-soft); border-color: transparent; }
+.chip.fixed { color: var(--ok); background: var(--ok-soft); border-color: transparent; }
+.chip.moved { border-style: dashed; }
+
+.txt { display: grid; gap: 6px; }
+.txt p { margin: 0; overflow-wrap: anywhere; }
+.txt ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 3px; }
+
+.copybox { display: grid; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; margin-block: 4px 12px; }
+.copybox textarea { font-family: var(--font-mono); font-size: 0.8rem; width: 100%; min-height: 160px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: var(--r); padding: 8px; }
+.copybox p { margin: 0; font-size: 0.88rem; color: var(--muted); }
+
+footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.85rem; }
+
+@media (max-width: 1080px) { .board { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) {
+  body { font-size: 14.5px; }
+  .board { grid-template-columns: minmax(0, 1fr); }
+  .bar { position: static; }
+  .bar .end { margin-left: 0; }
+  form.add { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="back" id="back" href="%%REVIEW_HREF%%">&larr; Back to the review</a>
+    <div class="eyebrow" id="eyebrow"></div>
+    <h1 id="title"></h1>
+    <p class="lede">Every open bug, risk and shortcoming from the review is a card here, next to suggested improvements. Fixed findings move to Done when the review is updated.</p>
+    <div class="tally" id="tally"></div>
+  </header>
+
+  <div class="bar" role="search">
+    <input type="search" id="q" placeholder="Search tasks" aria-label="Search tasks">
+    <div class="seg" role="group" aria-label="Show">
+      <button type="button" data-src="all" aria-pressed="true">All</button>
+      <button type="button" data-src="finding" aria-pressed="false">Findings</button>
+      <button type="button" data-src="suggestion" aria-pressed="false">Suggestions</button>
+      <button type="button" data-src="mine" aria-pressed="false">Added by you</button>
+    </div>
+    <div class="end">
+      <button type="button" class="btn primary" id="add-open">Add task</button>
+      <button type="button" class="btn" id="copy-open">Copy my changes</button>
+    </div>
+  </div>
+
+  <div class="local" id="local">
+    <span>Moves and added tasks are saved in this browser only.</span>
+    <span id="local-count"></span>
+    <button type="button" class="btn small danger" id="reset" hidden>Discard my changes</button>
+    <button type="button" class="btn small danger" id="reset-confirm" hidden>Yes, discard them</button>
+    <span class="status" id="status" role="status" aria-live="polite"></span>
+  </div>
+
+  <form class="add" id="add-form" hidden>
+    <label for="add-title">Task<input id="add-title" required maxlength="200" placeholder="e.g. Add rate limiting to the login endpoint"></label>
+    <label for="add-text">Notes<textarea id="add-text" maxlength="2000" placeholder="Why it matters, where to start"></textarea></label>
+    <div class="actions">
+      <select id="add-col" aria-label="Column"></select>
+      <button type="submit" class="btn primary">Add</button>
+      <button type="button" class="btn" id="add-cancel">Cancel</button>
+    </div>
+  </form>
+
+  <div class="copybox" id="copy-box" hidden>
+    <p>Give this to your coding agent (for example "apply these board changes to the review") so the moves and new tasks are saved in <code>.review/review.json</code> for everyone.</p>
+    <textarea id="copy-text" readonly aria-label="Board changes"></textarea>
+    <div><button type="button" class="btn" id="copy-close">Close</button></div>
+  </div>
+
+  <main class="board" id="board"></main>
+
+  <footer id="footer"></footer>
+</div>
+
+<script type="application/json" id="data">%%DATA%%</script>
+<script>
+(function () {
+  var D = JSON.parse(document.getElementById("data").textContent);
+  var REVIEW = document.getElementById("back").getAttribute("href");
+  var COLS = [
+    { key: "backlog", name: "Backlog", hint: "Found or suggested, not planned yet." },
+    { key: "todo", name: "To do", hint: "Planned next." },
+    { key: "doing", name: "In progress", hint: "Being worked on, including partly fixed findings." },
+    { key: "done", name: "Done", hint: "Fixed findings and finished tasks." }
+  ];
+  var COL_NAME = {}; COLS.forEach(function (c) { COL_NAME[c.key] = c.name; });
+  var KIND = { bug: "Bug", security: "Security", unfinished: "Unfinished", improvement: "Improvement", "dead-code": "Dead code" };
+  var SEV = { high: "High", medium: "Medium", low: "Low" };
+  var SEV_ORDER = { high: 0, medium: 1, low: 2 };
+  var DONE_SHOWN = 8;
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function inline(parent, text) {
+    String(text || "").replace(/\*\*/g, "").split("`").forEach(function (p, i) {
+      if (!p) return;
+      parent.appendChild(i % 2 ? el("code", null, p) : document.createTextNode(p));
+    });
+  }
+  function renderText(text) {
+    var box = el("div", "txt"), para = [], list = null;
+    function flush() { if (para.length) { var p = el("p"); inline(p, para.join(" ")); box.appendChild(p); para = []; } }
+    String(text || "").split("\n").forEach(function (raw) {
+      var line = raw.trim(), m = line.match(/^(?:[-*]|\d+[.)])\s+(.*)$/);
+      if (m) { flush(); if (!list) { list = el("ul"); box.appendChild(list); } var li = el("li"); inline(li, m[1]); list.appendChild(li); }
+      else if (!line) { flush(); list = null; }
+      else { list = null; para.push(line); }
+    });
+    flush();
+    return box;
+  }
+  function chip(cls, text) { return el("span", "chip " + cls, text); }
+  function fmtDate(iso) {
+    if (!iso) return "";
+    var d = new Date(iso + "T12:00:00");
+    return isNaN(d) ? iso : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  // Cards from the review data. Accepted risks are trade-offs made on purpose, so they are not tasks.
+  var cards = [];
+  (D.findings || []).forEach(function (f) {
+    if (f.kind === "risk") return;
+    var col = f.status === "fixed" ? "done" : (f.column || (f.status === "partly" ? "doing" : "backlog"));
+    cards.push({ id: "F" + f.id, src: "finding", f: f, title: f.title, col: col, sev: f.severity,
+      text: [f.title, f.file, f.area, f.detail, f.suggestion, f.status_note].join(" ") });
+  });
+  (D.tasks || []).forEach(function (t) {
+    cards.push({ id: "T" + t.id, src: "suggestion", t: t, title: t.title, col: t.column || "backlog",
+      text: [t.title, t.text, t.area, (t.files || []).join(" ")].join(" ") });
+  });
+
+  // Per-viewer changes. A move only counts while the review still has the card where it was
+  // when it was moved; once the review itself moves the card (e.g. marks it fixed), the review wins.
+  var KEY = "review-tasks:" + (D.project || "project");
+  var local = { moves: {}, added: [] };
+  try {
+    var saved = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (saved && typeof saved === "object") { local.moves = saved.moves || {}; local.added = Array.isArray(saved.added) ? saved.added : []; }
+  } catch (e) { /* storage blocked: start clean */ }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(local)); return true; } catch (e) { return false; }
+  }
+
+  var byId = {};
+  cards.forEach(function (c) { byId[c.id] = c; });
+  function columnOf(c) {
+    if (c.src === "mine") return c.col;
+    var m = local.moves[c.id];
+    return m && m.base === c.col && m.to !== c.col ? m.to : c.col;
+  }
+  function allCards() {
+    return cards.concat(local.added.map(function (a) {
+      return { id: a.id, src: "mine", a: a, title: a.title, col: a.column, text: a.title + " " + (a.text || "") };
+    }));
+  }
+  function moveCard(id, to) {
+    var mine = local.added.filter(function (a) { return a.id === id; })[0];
+    if (mine) mine.column = to;
+    else if (byId[id]) {
+      if (to === byId[id].col) delete local.moves[id];
+      else local.moves[id] = { to: to, base: byId[id].col };
+    }
+    note(save() ? "" : "This browser is blocking storage, so the change will be lost when you leave the page.");
+    render();
+  }
+
+  var status = document.getElementById("status");
+  var statusTimer;
+  function note(text) { clearTimeout(statusTimer); status.textContent = text; if (text) statusTimer = setTimeout(function () { status.textContent = ""; }, 4000); }
+
+  function buildCard(c, col) {
+    var card = el("article", "card");
+    if (c.src === "finding") card.classList.add("sev-" + c.sev);
+    if (c.src === "suggestion") card.classList.add("sugg");
+    if (c.src === "mine") card.classList.add("mine");
+    if (col === "done") card.classList.add("in-done");
+    card.draggable = true;
+    card.dataset.id = c.id;
+
+    var t = el("div", "t");
+    if (c.src === "finding") { var a = el("a"); a.href = REVIEW + "#f" + c.f.id; inline(a, c.title); t.appendChild(a); }
+    else inline(t, c.title);
+    card.appendChild(t);
+
+    var meta = el("div", "meta");
+    if (c.src === "finding") {
+      var f = c.f;
+      meta.appendChild(chip("sev-" + f.severity, SEV[f.severity]));
+      meta.appendChild(chip("kind", KIND[f.kind] || f.kind));
+      if (f.status === "fixed") meta.appendChild(chip("fixed", "Fixed" + (f.status_date ? " " + fmtDate(f.status_date) : "")));
+      if (f.status === "partly") meta.appendChild(chip("partly", "Partly fixed"));
+      if (f.file) meta.appendChild(el("span", "loc", f.file + (f.line > 0 ? ":" + f.line : "")));
+      if (f.area) meta.appendChild(el("span", "area", f.area));
+    } else if (c.src === "suggestion") {
+      var s = c.t;
+      meta.appendChild(chip("sugg", "Suggestion"));
+      if (s.effort) meta.appendChild(chip("kind", s.effort + " effort"));
+      if (s.area) meta.appendChild(el("span", "area", s.area));
+    } else {
+      meta.appendChild(chip("mine", "Added by you"));
+    }
+    card.appendChild(meta);
+
+    var body = c.src === "suggestion" ? c.t.text : c.src === "mine" ? c.a.text : null;
+    if (body || (c.src === "suggestion" && ((c.t.files || []).length || (c.t.findings || []).length || c.t.done_note))) {
+      var d = el("details");
+      d.appendChild(el("summary", null, "Details"));
+      if (body) d.appendChild(renderText(body));
+      if (c.src === "suggestion") {
+        if (c.t.done_note) { var dn = el("div", "txt"); var p = el("p"); inline(p, "Done: " + c.t.done_note); dn.appendChild(p); d.appendChild(dn); }
+        if ((c.t.files || []).length) { var fl = el("div", "txt"); var fp = el("p"); inline(fp, "Files: " + c.t.files.map(function (x) { return "`" + x + "`"; }).join(", ")); fl.appendChild(fp); d.appendChild(fl); }
+        if ((c.t.findings || []).length) {
+          var rel = el("p", "loc", "Related: ");
+          c.t.findings.forEach(function (id, i) { var ra = el("a", null, "finding " + id); ra.href = REVIEW + "#f" + id; if (i) rel.appendChild(document.createTextNode(", ")); rel.appendChild(ra); });
+          d.appendChild(rel);
+        }
+      }
+      card.appendChild(d);
+    }
+
+    var foot = el("div", "foot");
+    var flags = el("div", "flags");
+    if (c.src !== "mine" && col !== c.col) flags.appendChild(chip("moved", "Moved by you"));
+    if (c.src === "finding" && col === "done" && c.f.status !== "fixed") flags.appendChild(chip("pending", "Not yet confirmed fixed"));
+    foot.appendChild(flags);
+    var right = el("div", "flags");
+    var sel = el("select");
+    sel.setAttribute("aria-label", "Move “" + c.title.slice(0, 60) + "” to");
+    COLS.forEach(function (k) { var o = el("option", null, k.name); o.value = k.key; if (k.key === col) o.selected = true; sel.appendChild(o); });
+    sel.addEventListener("change", function () { moveCard(c.id, sel.value); });
+    right.appendChild(sel);
+    if (c.src === "mine") {
+      var del = el("button", "btn small danger", "Remove");
+      del.type = "button";
+      del.addEventListener("click", function () {
+        if (del.dataset.armed) {
+          local.added = local.added.filter(function (a) { return a.id !== c.id; });
+          save(); render(); note("Task removed.");
+        } else { del.dataset.armed = "1"; del.textContent = "Confirm remove"; }
+      });
+      right.appendChild(del);
+    }
+    foot.appendChild(right);
+    card.appendChild(foot);
+
+    card.addEventListener("dragstart", function (e) { e.dataTransfer.setData("text/plain", c.id); e.dataTransfer.effectAllowed = "move"; card.classList.add("dragging"); });
+    card.addEventListener("dragend", function () { card.classList.remove("dragging"); });
+    return card;
+  }
+
+  // Filters
+  var q = document.getElementById("q");
+  var srcBtns = Array.prototype.slice.call(document.querySelectorAll(".seg button"));
+  var src = "all";
+  srcBtns.forEach(function (b) {
+    b.addEventListener("click", function () {
+      src = b.dataset.src;
+      srcBtns.forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+      render();
+    });
+  });
+  q.addEventListener("input", render);
+
+  var expandedDone = false;
+  var board = document.getElementById("board");
+  function sortKey(c) {
+    if (c.src === "finding") return [0, SEV_ORDER[c.sev], c.f.id];
+    if (c.src === "suggestion") return [1, 0, 0];
+    return [2, 0, 0];
+  }
+  function render() {
+    var term = q.value.trim().toLowerCase();
+    var all = allCards();
+    var per = { backlog: [], todo: [], doing: [], done: [] };
+    var counts = { backlog: 0, todo: 0, doing: 0, done: 0 };
+    all.forEach(function (c) {
+      var col = columnOf(c);
+      if (!per[col]) col = "backlog";
+      counts[col]++;
+      if (src !== "all" && c.src !== src) return;
+      if (term && c.text.toLowerCase().indexOf(term) === -1) return;
+      per[col].push(c);
+    });
+    // Done: your own moves first (so a card you just moved stays in view), then most recently fixed.
+    function yours(c) { return c.src === "mine" || columnOf(c) !== c.col ? 0 : 1; }
+    per.done.sort(function (a, b) { return yours(a) - yours(b) || ((b.f && b.f.status_date) || "").localeCompare((a.f && a.f.status_date) || ""); });
+    ["backlog", "todo", "doing"].forEach(function (k) {
+      per[k].sort(function (a, b) { var x = sortKey(a), y = sortKey(b); return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]; });
+    });
+
+    board.textContent = "";
+    COLS.forEach(function (k) {
+      var col = el("section", "col");
+      col.dataset.col = k.key;
+      col.setAttribute("aria-label", k.name);
+      var h = el("header");
+      var h2 = el("h2", null, k.name);
+      var shown = per[k.key].length;
+      h2.appendChild(el("span", "n", shown === counts[k.key] ? String(shown) : shown + " of " + counts[k.key]));
+      h.appendChild(h2);
+      h.appendChild(el("p", null, k.hint));
+      col.appendChild(h);
+      var list = el("div", "cards");
+      var items = per[k.key];
+      var limit = k.key === "done" && !expandedDone && !term ? DONE_SHOWN : Infinity;
+      items.slice(0, limit).forEach(function (c) { list.appendChild(buildCard(c, k.key)); });
+      if (!items.length) list.appendChild(el("div", "empty", term || src !== "all" ? "No matching tasks." : "Nothing here yet."));
+      col.appendChild(list);
+      if (items.length > limit) {
+        var more = el("button", "btn small more", "Show " + (items.length - limit) + " more");
+        more.type = "button";
+        more.addEventListener("click", function () { expandedDone = true; render(); });
+        col.appendChild(more);
+      }
+      col.addEventListener("dragover", function (e) { e.preventDefault(); col.classList.add("over"); });
+      col.addEventListener("dragleave", function (e) { if (!col.contains(e.relatedTarget)) col.classList.remove("over"); });
+      col.addEventListener("drop", function (e) {
+        e.preventDefault(); col.classList.remove("over");
+        var id = e.dataTransfer.getData("text/plain");
+        if (id) moveCard(id, k.key);
+      });
+      board.appendChild(col);
+    });
+
+    var tally = document.getElementById("tally");
+    tally.textContent = "";
+    COLS.forEach(function (k) {
+      var dv = el("div", k.key === "done" ? "done" : null);
+      dv.appendChild(el("b", null, String(counts[k.key])));
+      dv.appendChild(el("span", null, k.name.toLowerCase()));
+      tally.appendChild(dv);
+    });
+
+    var changes = changeList();
+    var n = changes.moves.length + changes.added.length;
+    document.getElementById("local-count").textContent = n ? "You have " + n + " unsaved change" + (n === 1 ? "" : "s") + " here." : "";
+    document.getElementById("reset").hidden = !n;
+    document.getElementById("reset-confirm").hidden = true;
+    document.getElementById("copy-open").disabled = !n;
+  }
+
+  function changeList() {
+    var moves = [];
+    Object.keys(local.moves).forEach(function (id) {
+      var c = byId[id];
+      if (!c) return;
+      var to = columnOf(c);
+      if (to === c.col) return;
+      var m = { card: id, title: c.title, from: c.col, to: to };
+      if (c.src === "finding") m.finding = c.f.id; else m.task = c.t.id;
+      moves.push(m);
+    });
+    var added = local.added.map(function (a) { return { title: a.title, text: a.text || "", column: a.column, added: a.date }; });
+    return { moves: moves, added: added };
+  }
+
+  // Add task
+  var form = document.getElementById("add-form"), addTitle = document.getElementById("add-title"), addText = document.getElementById("add-text"), addCol = document.getElementById("add-col");
+  COLS.forEach(function (k) { var o = el("option", null, k.name); o.value = k.key; addCol.appendChild(o); });
+  document.getElementById("add-open").addEventListener("click", function () { form.hidden = false; addTitle.focus(); });
+  document.getElementById("add-cancel").addEventListener("click", function () { form.hidden = true; form.reset(); });
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var title = addTitle.value.trim(), column = addCol.value;
+    if (!title) { addTitle.focus(); return; }
+    local.added.push({ id: "L" + Date.now().toString(36), title: title, text: addText.value.trim(), column: column, date: new Date().toISOString().slice(0, 10) });
+    var ok = save();
+    form.reset(); form.hidden = true;
+    render();
+    note(ok ? "Task added to " + COL_NAME[column] + "." : "Task added, but this browser is blocking storage, so it will be lost when you leave the page.");
+  });
+
+  // Copy changes for the agent
+  var box = document.getElementById("copy-box"), copyText = document.getElementById("copy-text");
+  document.getElementById("copy-open").addEventListener("click", function () {
+    var payload = { review: D.project, board_changes: changeList() };
+    copyText.value = "Apply these task board changes to the review (.review/review.json):\n" + JSON.stringify(payload, null, 2);
+    box.hidden = false;
+    var done = function () { note("Copied. Paste it to your agent."); };
+    var fallback = function () { copyText.focus(); copyText.select(); note("Select all and copy the text below."); };
+    try { navigator.clipboard.writeText(copyText.value).then(done, fallback); } catch (err) { fallback(); }
+  });
+  document.getElementById("copy-close").addEventListener("click", function () { box.hidden = true; });
+
+  // Discard
+  var reset = document.getElementById("reset"), resetConfirm = document.getElementById("reset-confirm");
+  reset.addEventListener("click", function () { reset.hidden = true; resetConfirm.hidden = false; resetConfirm.focus(); });
+  resetConfirm.addEventListener("click", function () {
+    local = { moves: {}, added: [] };
+    save(); box.hidden = true; render(); note("Your changes were discarded.");
+  });
+
+  // Header
+  document.getElementById("title").textContent = (D.project || "Project") + " tasks";
+  var eyebrow = ["Task board"];
+  if (D.commit) eyebrow.push("commit " + D.commit.slice(0, 7));
+  if (D.updated) eyebrow.push("review updated " + fmtDate(D.updated));
+  document.getElementById("eyebrow").textContent = eyebrow.join(" · ");
+  document.getElementById("footer").textContent = "Cards come from the " + (D.project || "project") + " code review. Columns from the review are shared with everyone; your own moves and tasks stay in this browser until an agent writes them into the review.";
+
+  render();
+})();
+</script>
+</body>
+</html>

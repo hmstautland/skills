@@ -84,6 +84,7 @@ header.top h1 { font-size: clamp(2rem, 5vw, 2.9rem); font-weight: 700; line-heig
 nav.toc { display: flex; flex-wrap: wrap; gap: 6px 18px; padding-block: 14px; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
 nav.toc a { text-decoration: none; color: var(--ink); }
 nav.toc a:hover { color: var(--accent); text-decoration: underline; }
+nav.toc a.tasks { margin-left: auto; color: var(--accent); font-weight: 600; }
 
 section { padding-block: 36px 8px; display: grid; gap: 16px; }
 section > .head { display: grid; gap: 4px; }
@@ -195,6 +196,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 90px; }
     <a href="#decisions" id="toc-decisions" hidden>Open decisions</a>
     <a href="#method">Method</a>
     <a href="#changes">Change log</a>
+    <a href="%%TASKS_HREF%%" class="tasks">Tasks &rarr;</a>
   </nav>
 
   <section id="abstract">
