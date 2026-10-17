@@ -73,7 +73,10 @@ user picked another place.
 - `artifact_url`: the published page. Republish to it instead of creating a new page.
 - `abstract`: 1–3 short paragraphs on the *current* state: what the project is,
   overall health, the biggest open problems. Rewrite it whenever fixes change the
-  picture — it must never describe problems that are already fixed.
+  picture — it must never describe problems that are already fixed. Keep history out
+  of it: no "since the last review", "N issues fixed" or "X was resolved"; what changed
+  and when belongs in `changelog`. Read it as if the project were being reviewed for
+  the first time today.
 - `priorities`: the 3–6 open problems to fix first, ranked. A priority whose
   findings are all fixed is hidden automatically; remove it from the file when you
   next touch it, and promote the next open problem.

@@ -204,7 +204,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 90px; }
     <ol class="prio" id="priorities"></ol>
   </section>
 
-  <div class="filters" role="search">
+  <div class="filters" id="filters" role="search">
     <input type="search" id="q" placeholder="Search open issues" aria-label="Search open issues">
     <div class="seg" role="group" aria-label="Severity">
       <button type="button" data-sev="high" aria-pressed="false">High</button>
@@ -360,18 +360,27 @@ html { scroll-behavior: smooth; scroll-padding-top: 90px; }
   var open = F.filter(isOpen);
   var fixedCount = F.length - open.length;
   var tally = document.getElementById("tally");
-  function stat(cls, n, label, href) {
+  function stat(cls, n, label, href, onClick) {
     var dv = el("div", cls);
     var inner = href ? el("a") : dv;
     if (href) { inner.href = href; dv.appendChild(inner); }
+    if (href && onClick) inner.addEventListener("click", function (e) { e.preventDefault(); onClick(); });
     inner.appendChild(el("b", null, String(n)));
     inner.appendChild(el("span", null, label));
     tally.appendChild(dv);
   }
   function sep() { var s = el("div", "sep"); s.setAttribute("aria-hidden", "true"); tally.appendChild(s); }
-  stat("", open.length, "open issues");
+  // Severity counts set the severity filter and jump to the issue lists.
+  function showSeverity(sv) {
+    q.value = ""; design.checked = false;
+    sevBtns.forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.sev === sv)); });
+    apply();
+    document.getElementById("filters").scrollIntoView({ block: "start" });
+  }
+  stat("", open.length, "open issues", "#bugs", function () { showSeverity(null); });
   ["high", "medium", "low"].forEach(function (sv) {
-    stat(sv[0] === "m" ? "m" : sv[0] === "h" ? "h" : "l", open.filter(function (f) { return f.severity === sv; }).length, SEV[sv].toLowerCase());
+    var n = open.filter(function (f) { return f.severity === sv; }).length;
+    stat(sv[0], n, SEV[sv].toLowerCase(), n ? "#bugs" : null, function () { showSeverity(sv); });
   });
   sep();
   [["bugs", "bugs"], ["risks", "risks"], ["shortcomings", "shortcomings"]].forEach(function (p) {

@@ -52,7 +52,8 @@ Two modes:
    findings with fresh ids — `kind: "risk"` with `verification: "accepted"` for trade-offs.
 5. Rewrite `abstract` and `priorities` for the new state, and set `updated` to today.
    Stale summaries are the main way a review page starts lying; the counts update
-   themselves, but the prose doesn't.
+   themselves, but the prose doesn't. The abstract describes only the current state —
+   don't recount the fixes there; that history lives in the change log.
 6. Build and publish to the same `artifact_url`.
 
 ## Build and publish

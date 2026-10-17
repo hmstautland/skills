@@ -1,0 +1,16 @@
+{
+  "description": "Offer to run or update the project review when a prompt asks for a review or a fix.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/suggest_review.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

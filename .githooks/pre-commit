@@ -1,0 +1,91 @@
+#!/usr/bin/env python3
+"""Bump plugin patch versions for staged changes under plugins/."""
+
+from __future__ import annotations
+
+import json
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+
+def git(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["git", *args],
+        check=check,
+        capture_output=True,
+        text=True,
+    )
+
+
+def main() -> int:
+    root = Path(git("rev-parse", "--show-toplevel").stdout.strip())
+    staged_paths = git("diff", "--cached", "--name-only", "-z").stdout.split("\0")
+    affected_plugins = {
+        parts[1]
+        for path in staged_paths
+        if path
+        and (parts := Path(path).parts)
+        and len(parts) > 2
+        and parts[0] == "plugins"
+    }
+
+    updates: list[tuple[Path, str, str]] = []
+    for plugin in sorted(affected_plugins):
+        manifest = root / "plugins" / plugin / ".claude-plugin" / "plugin.json"
+        if not manifest.exists():
+            # A fully removed plugin has no version left to bump.
+            if not (root / "plugins" / plugin).exists():
+                continue
+            print(f"pre-commit: missing plugin manifest: {manifest}", file=sys.stderr)
+            return 1
+
+        relative_manifest = manifest.relative_to(root).as_posix()
+        unstaged = git("diff", "--quiet", "--", relative_manifest, check=False)
+        if unstaged.returncode:
+            print(
+                f"pre-commit: stage or discard unstaged changes in {relative_manifest} before committing plugin changes",
+                file=sys.stderr,
+            )
+            return 1
+
+        content = manifest.read_text(encoding="utf-8")
+        try:
+            data = json.loads(content)
+        except json.JSONDecodeError as error:
+            print(f"pre-commit: invalid JSON in {relative_manifest}: {error}", file=sys.stderr)
+            return 1
+
+        version = data.get("version")
+        match = re.fullmatch(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)", str(version))
+        if not match:
+            print(
+                f"pre-commit: expected a numeric semantic version (MAJOR.MINOR.PATCH) in {relative_manifest}",
+                file=sys.stderr,
+            )
+            return 1
+
+        major, minor, patch = (int(part) for part in match.groups())
+        bumped = f"{major}.{minor}.{patch + 1}"
+        updated, replacements = re.subn(
+            r'("version"\s*:\s*")' + re.escape(str(version)) + r'(")',
+            lambda found: found.group(1) + bumped + found.group(2),
+            content,
+            count=1,
+        )
+        if replacements != 1:
+            print(f"pre-commit: could not update version in {relative_manifest}", file=sys.stderr)
+            return 1
+        updates.append((manifest, relative_manifest, updated))
+
+    for manifest, relative_manifest, updated in updates:
+        manifest.write_text(updated, encoding="utf-8")
+        git("add", "--", relative_manifest)
+        print(f"pre-commit: bumped {relative_manifest}")
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
