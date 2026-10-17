@@ -1,0 +1,512 @@
+<title>%%TITLE%%</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: a living review. Abstract and open-issue counts first, then the open issues in three
+   registers (bugs, risks, shortcomings), each row with a severity edge; method and change log last. */
+:root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --sunken: #eaeef3;
+  --ink: #17202c;
+  --muted: #586374;
+  --line: #d8dee6;
+  --accent: #1d5f8a;
+  --accent-soft: #e2edf5;
+  --high: #b42318;
+  --high-soft: #fbe9e7;
+  --med: #a64b00;
+  --med-soft: #fcefdf;
+  --low: #5d6878;
+  --low-soft: #e9edf2;
+  --ok: #10703f;
+  --ok-soft: #e1f3e8;
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e131a; --surface: #151c26; --sunken: #1b2430; --ink: #e5eaf1; --muted: #9aa5b5; --line: #2a3442;
+    --accent: #7ab8e3; --accent-soft: #1a2d3d;
+    --high: #ff8a7a; --high-soft: #3a1d1b; --med: #f5b85a; --med-soft: #3a2a14; --low: #a3adbb; --low-soft: #242d39;
+    --ok: #6fd39c; --ok-soft: #163322;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e131a; --surface: #151c26; --sunken: #1b2430; --ink: #e5eaf1; --muted: #9aa5b5; --line: #2a3442;
+  --accent: #7ab8e3; --accent-soft: #1a2d3d;
+  --high: #ff8a7a; --high-soft: #3a1d1b; --med: #f5b85a; --med-soft: #3a2a14; --low: #a3adbb; --low-soft: #242d39;
+  --ok: #6fd39c; --ok-soft: #163322;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 64px;
+}
+.wrap { max-width: 980px; margin: 0 auto; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px;
+}
+code { font-family: var(--font-mono); font-size: 0.87em; background: var(--sunken); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; letter-spacing: -0.005em; }
+h2 { font-size: 1.55rem; font-weight: 700; }
+h3 { font-size: 1.1rem; font-weight: 600; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+
+header.top { padding-block: 40px 24px; border-bottom: 1px solid var(--line); display: grid; gap: 14px; }
+header.top h1 { font-size: clamp(2rem, 5vw, 2.9rem); font-weight: 700; line-height: 1.05; }
+.tally { display: flex; flex-wrap: wrap; gap: 10px 28px; font-variant-numeric: tabular-nums; }
+.tally div { display: grid; }
+.tally b { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; line-height: 1.1; }
+.tally span { font-size: 0.8rem; color: var(--muted); }
+.tally .h b { color: var(--high); }
+.tally .m b { color: var(--med); }
+.tally .l b { color: var(--low); }
+.tally .fx b { color: var(--ok); }
+.tally .sep { width: 1px; background: var(--line); align-self: stretch; }
+.tally a { color: inherit; text-decoration: none; }
+.tally a:hover span { text-decoration: underline; }
+
+nav.toc { display: flex; flex-wrap: wrap; gap: 6px 18px; padding-block: 14px; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+nav.toc a { text-decoration: none; color: var(--ink); }
+nav.toc a:hover { color: var(--accent); text-decoration: underline; }
+
+section { padding-block: 36px 8px; display: grid; gap: 16px; }
+section > .head { display: grid; gap: 4px; }
+section > .head p { margin: 0; color: var(--muted); max-width: 66ch; }
+.prose { max-width: 70ch; display: grid; gap: 10px; }
+.prose p { margin: 0; }
+.prose ul { margin: 0; padding-left: 1.2rem; display: grid; gap: 6px; }
+
+ol.prio { list-style: none; counter-reset: prio; padding: 0; margin: 0; display: grid; gap: 10px; }
+ol.prio > li {
+  counter-increment: prio; display: grid; grid-template-columns: 2.2rem minmax(0, 1fr); gap: 4px 12px;
+  background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--low);
+  border-radius: var(--r); padding: 14px 16px 14px 12px;
+}
+ol.prio > li.sev-high { border-left-color: var(--high); }
+ol.prio > li.sev-medium { border-left-color: var(--med); }
+ol.prio > li::before { content: counter(prio); font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; color: var(--muted); line-height: 1.1; }
+ol.prio > li > * { grid-column: 2; margin: 0; }
+ol.prio .refs { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 0.85rem; color: var(--muted); }
+
+.chip { display: inline-flex; align-items: center; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.03em; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); background: var(--surface); white-space: nowrap; }
+.chip.sev-high { color: var(--high); background: var(--high-soft); border-color: transparent; }
+.chip.sev-medium { color: var(--med); background: var(--med-soft); border-color: transparent; }
+.chip.sev-low { color: var(--low); background: var(--low-soft); border-color: transparent; }
+.chip.partly { color: var(--med); background: var(--med-soft); border-color: transparent; font-weight: 500; }
+.chip.fixed { color: var(--ok); background: var(--ok-soft); border-color: transparent; font-weight: 500; }
+.chip.design { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
+.chip.accepted { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
+
+.filters { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; background: var(--bg); padding-block: 10px; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-top: 24px; }
+.filters input[type="search"] { flex: 1 1 240px; min-width: 0; font: inherit; font-size: 0.95rem; padding: 8px 12px; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; background: var(--surface); }
+.seg button { font: inherit; font-size: 0.85rem; padding: 6px 11px; border: 0; border-left: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
+.seg button:first-child { border-left: 0; }
+.seg button[aria-pressed="true"] { color: var(--ink); background: var(--sunken); font-weight: 600; }
+label.check { display: inline-flex; gap: 6px; align-items: center; font-size: 0.88rem; color: var(--muted); cursor: pointer; }
+.count { font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; margin-left: auto; }
+
+.list { display: grid; gap: 8px; }
+details.f { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--low); border-radius: var(--r); }
+details.f.sev-high { border-left-color: var(--high); }
+details.f.sev-medium { border-left-color: var(--med); }
+details.f.done { border-left-color: var(--ok); }
+details.f > summary { list-style: none; cursor: pointer; padding: 12px 14px; display: grid; gap: 6px; }
+details.f > summary::-webkit-details-marker { display: none; }
+details.f > summary .t { font-weight: 600; line-height: 1.35; }
+details.f > summary .t::before { content: "+"; display: inline-block; width: 1.1em; color: var(--muted); font-family: var(--font-mono); font-weight: 400; }
+details.f[open] > summary .t::before { content: "\2212"; }
+details.f > summary .meta { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; padding-left: 1.1em; }
+.loc { font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink); overflow-wrap: anywhere; }
+.area { font-size: 0.8rem; color: var(--muted); }
+details.f .body { padding: 14px 16px 16px calc(14px + 1.1em); display: grid; gap: 14px; border-top: 1px solid var(--line); }
+.blk { display: grid; gap: 4px; min-width: 0; }
+.blk > .lbl { font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.blk.note { background: var(--med-soft); border-radius: var(--r); padding: 10px 12px; }
+.blk.note > .lbl { color: var(--med); }
+.blk.note.done { background: var(--ok-soft); }
+.blk.note.done > .lbl { color: var(--ok); }
+.txt { display: grid; gap: 8px; max-width: 76ch; font-size: 0.94rem; }
+.txt p { margin: 0; overflow-wrap: anywhere; }
+.txt ul { margin: 0; padding-left: 1.2rem; display: grid; gap: 4px; }
+.txt li { overflow-wrap: anywhere; }
+.muted .txt { color: var(--muted); }
+.links { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.85rem; }
+.empty { padding: 20px; text-align: center; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: var(--r); }
+
+.decisions { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.decision { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+.decision p { margin: 0; font-size: 0.93rem; }
+.decision .opt { color: var(--muted); }
+
+.log { display: grid; gap: 16px; }
+.entry { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 10px; }
+.entry .when { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.entry p { margin: 0; max-width: 72ch; }
+.entry .files { font-size: 0.82rem; color: var(--muted); }
+.entry .list details.f { background: var(--bg); }
+
+.summaries { display: grid; gap: 8px; }
+.summaries details { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+.summaries summary { cursor: pointer; padding: 10px 14px; font-weight: 600; }
+.summaries .txt { padding: 0 16px 16px; }
+
+footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.85rem; }
+
+@media (max-width: 560px) {
+  body { font-size: 14.5px; }
+  .tally .sep { display: none; }
+  details.f .body { padding-left: 14px; }
+  .count { margin-left: 0; width: 100%; }
+  .filters { position: static; }
+}
+html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow" id="eyebrow"></div>
+    <h1 id="title"></h1>
+    <div class="tally" id="tally"></div>
+  </header>
+
+  <nav class="toc" aria-label="Sections">
+    <a href="#abstract">Abstract</a>
+    <a href="#bugs">Bugs</a>
+    <a href="#risks">Risks</a>
+    <a href="#shortcomings">Shortcomings</a>
+    <a href="#decisions" id="toc-decisions" hidden>Open decisions</a>
+    <a href="#method">Method</a>
+    <a href="#changes">Change log</a>
+  </nav>
+
+  <section id="abstract">
+    <div class="head"><h2>Abstract</h2></div>
+    <div class="prose" id="abstract-text"></div>
+    <h3 id="prio-head">Fix first</h3>
+    <ol class="prio" id="priorities"></ol>
+  </section>
+
+  <div class="filters" role="search">
+    <input type="search" id="q" placeholder="Search open issues" aria-label="Search open issues">
+    <div class="seg" role="group" aria-label="Severity">
+      <button type="button" data-sev="high" aria-pressed="false">High</button>
+      <button type="button" data-sev="medium" aria-pressed="false">Medium</button>
+      <button type="button" data-sev="low" aria-pressed="false">Low</button>
+    </div>
+    <label class="check"><input type="checkbox" id="design"> Design changes only</label>
+    <span class="count" id="count" aria-live="polite"></span>
+  </div>
+
+  <section id="bugs">
+    <div class="head"><h2>Bugs <span class="n"></span></h2><p>Code that does the wrong thing today, each with a concrete way it fails.</p></div>
+    <div class="list"></div>
+  </section>
+
+  <section id="risks">
+    <div class="head"><h2>Known and calculated risks <span class="n"></span></h2><p>Security exposures, and trade-offs that were accepted on purpose. Accepted ones are marked.</p></div>
+    <div class="list"></div>
+  </section>
+
+  <section id="shortcomings">
+    <div class="head"><h2>Shortcomings <span class="n"></span></h2><p>Unfinished features, dead code and design gaps that are not bugs yet.</p></div>
+    <div class="list"></div>
+  </section>
+
+  <section id="decisions" hidden>
+    <div class="head"><h2>Open decisions</h2><p>These change contracts used across files, so they need the owner's call before anyone starts.</p></div>
+    <div class="decisions" id="decision-list"></div>
+  </section>
+
+  <section id="method">
+    <div class="head"><h2>Method</h2></div>
+    <div class="prose">
+      <p>Each finding was checked by a second, independent reviewer agent, told to disprove it by tracing the code. <b>Verified</b> means it held up. <b>Verified, corrected</b> means it held up, but the second reviewer corrected details such as the mechanism, the location or the severity; the corrected statement is shown on the finding. Findings that did not hold up were dropped and are not on this page.</p>
+      <ul id="method-list"></ul>
+    </div>
+    <div class="summaries" id="summaries"></div>
+  </section>
+
+  <section id="changes">
+    <div class="head"><h2>Change log</h2><p>Fixes made since the review, newest first. Fixed issues are listed here and nowhere else.</p></div>
+    <div class="log" id="log"></div>
+  </section>
+
+  <footer id="footer"></footer>
+</div>
+
+<script type="application/json" id="data">%%DATA%%</script>
+<script>
+(function () {
+  var D = JSON.parse(document.getElementById("data").textContent);
+  var F = D.findings;
+  var byId = {};
+  F.forEach(function (f) { byId[f.id] = f; });
+
+  var SECTION_OF = { bug: "bugs", security: "risks", risk: "risks", unfinished: "shortcomings", improvement: "shortcomings", "dead-code": "shortcomings" };
+  var KIND = { bug: "Bug", security: "Security", risk: "Accepted risk", unfinished: "Unfinished", improvement: "Improvement", "dead-code": "Dead code" };
+  var SEV = { high: "High", medium: "Medium", low: "Low" };
+  var SEV_ORDER = { high: 0, medium: 1, low: 2 };
+  var VERIFIED = { verified: "Verified", corrected: "Verified, corrected" };
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function inline(parent, text) {
+    String(text || "").replace(/\*\*/g, "").split("`").forEach(function (p, i) {
+      if (!p) return;
+      parent.appendChild(i % 2 ? el("code", null, p) : document.createTextNode(p));
+    });
+  }
+  function renderText(text) {
+    var box = el("div", "txt"), para = [], list = null;
+    function flush() { if (para.length) { var p = el("p"); inline(p, para.join(" ")); box.appendChild(p); para = []; } }
+    String(text || "").split("\n").forEach(function (raw) {
+      var line = raw.trim(), m = line.match(/^(?:[-*]|\d+[.)])\s+(.*)$/);
+      if (m) { flush(); if (!list) { list = el("ul"); box.appendChild(list); } var li = el("li"); inline(li, m[1]); list.appendChild(li); }
+      else if (!line) { flush(); list = null; }
+      else { list = null; para.push(line); }
+    });
+    flush();
+    return box;
+  }
+  function chip(cls, text) { return el("span", "chip " + cls, text); }
+  function block(label, content, cls) {
+    var b = el("div", "blk" + (cls ? " " + cls : ""));
+    b.appendChild(el("div", "lbl", label));
+    b.appendChild(content);
+    return b;
+  }
+  function fileUrl(f) {
+    if (!D.repo_url || !D.commit || !f.file) return null;
+    return D.repo_url.replace(/\/$/, "") + "/blob/" + D.commit + "/" + String(f.file).split(":")[0] + (f.line > 0 ? "#L" + f.line : "");
+  }
+  function shortCommit() { return D.commit ? D.commit.slice(0, 7) : ""; }
+  function fmtDate(iso) {
+    if (!iso) return "";
+    var d = new Date(iso + "T12:00:00");
+    return isNaN(d) ? iso : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  }
+  function isOpen(f) { return f.status !== "fixed"; }
+
+  function card(f, inLog) {
+    var d = el("details", "f sev-" + f.severity + (inLog && f.status === "fixed" ? " done" : ""));
+    if (!inLog) d.id = "f" + f.id;
+    var s = el("summary");
+    var t = el("span", "t"); inline(t, f.title); s.appendChild(t);
+    var meta = el("span", "meta");
+    if (inLog && f.status === "fixed") meta.appendChild(chip("fixed", "Fixed"));
+    if (f.status === "partly") meta.appendChild(chip("partly", "Partly fixed"));
+    meta.appendChild(chip("sev-" + f.severity, SEV[f.severity]));
+    meta.appendChild(chip(f.kind === "risk" ? "accepted" : "kind", KIND[f.kind] || f.kind));
+    if (f.file) meta.appendChild(el("span", "loc", f.file + (f.line > 0 ? ":" + f.line : "")));
+    if (f.area) meta.appendChild(el("span", "area", f.area));
+    if (f.design) meta.appendChild(chip("design", "Design change"));
+    s.appendChild(meta);
+    d.appendChild(s);
+
+    var built = false;
+    d.addEventListener("toggle", function () {
+      if (!d.open || built) return;
+      built = true;
+      var body = el("div", "body");
+      if (f.status_note) {
+        var label = (f.status === "fixed" ? "Fixed" : "Partly fixed") + (f.status_date ? " · " + fmtDate(f.status_date) : "") + (f.status === "partly" ? " · what is still open" : "");
+        body.appendChild(block(label, renderText(f.status_note), "note" + (f.status === "fixed" ? " done" : "")));
+      }
+      if (f.corrected) body.appendChild(block("Corrected statement", renderText(f.corrected), "note"));
+      body.appendChild(block(inLog ? "The problem was" : "What's wrong", renderText(f.detail)));
+      if (f.suggestion && !inLog) body.appendChild(block("Suggested fix", renderText(f.suggestion)));
+      if (f.verification_note) body.appendChild(block("How it was checked · " + (VERIFIED[f.verification] || f.verification), renderText(f.verification_note), "muted"));
+      var links = el("div", "links");
+      var url = fileUrl(f);
+      if (url) { var a = el("a", null, "Open " + String(f.file).split(":")[0] + " at " + shortCommit()); a.href = url; a.target = "_blank"; a.rel = "noopener"; links.appendChild(a); }
+      if (f.also_reported_by && f.also_reported_by.length) links.appendChild(el("span", "area", "Also found by: " + f.also_reported_by.join(", ")));
+      if (inLog && f.status === "partly") { var o = el("a", null, "See what is still open"); o.href = "#f" + f.id; links.appendChild(o); }
+      if (links.childNodes.length) body.appendChild(links);
+      d.appendChild(body);
+    });
+    return d;
+  }
+
+  // Header
+  document.getElementById("title").textContent = D.title || (D.project + " Code Review");
+  var eyebrow = ["Code review"];
+  if (shortCommit()) eyebrow.push("commit " + shortCommit());
+  if (D.reviewed) eyebrow.push("reviewed " + fmtDate(D.reviewed));
+  if (D.updated) eyebrow.push("last updated " + fmtDate(D.updated));
+  document.getElementById("eyebrow").textContent = eyebrow.join(" · ");
+
+  var open = F.filter(isOpen);
+  var fixedCount = F.length - open.length;
+  var tally = document.getElementById("tally");
+  function stat(cls, n, label, href) {
+    var dv = el("div", cls);
+    var inner = href ? el("a") : dv;
+    if (href) { inner.href = href; dv.appendChild(inner); }
+    inner.appendChild(el("b", null, String(n)));
+    inner.appendChild(el("span", null, label));
+    tally.appendChild(dv);
+  }
+  function sep() { var s = el("div", "sep"); s.setAttribute("aria-hidden", "true"); tally.appendChild(s); }
+  stat("", open.length, "open issues");
+  ["high", "medium", "low"].forEach(function (sv) {
+    stat(sv[0] === "m" ? "m" : sv[0] === "h" ? "h" : "l", open.filter(function (f) { return f.severity === sv; }).length, SEV[sv].toLowerCase());
+  });
+  sep();
+  [["bugs", "bugs"], ["risks", "risks"], ["shortcomings", "shortcomings"]].forEach(function (p) {
+    stat("", open.filter(function (f) { return SECTION_OF[f.kind] === p[0]; }).length, p[1], "#" + p[0]);
+  });
+  sep();
+  stat("fx", fixedCount, "fixed since review", "#changes");
+
+  // Abstract and priorities
+  var abs = document.getElementById("abstract-text");
+  (D.abstract || []).forEach(function (para) { var p = el("p"); inline(p, para); abs.appendChild(p); });
+  var prio = document.getElementById("priorities");
+  (D.priorities || []).forEach(function (p) {
+    var fs = (p.findings || []).map(function (id) { return byId[id]; }).filter(Boolean);
+    var stillOpen = fs.filter(isOpen);
+    if (fs.length && !stillOpen.length) return; // all fixed: listed in the change log instead
+    var worst = stillOpen.reduce(function (w, f) { return SEV_ORDER[f.severity] < SEV_ORDER[w] ? f.severity : w; }, "low");
+    var li = el("li", "sev-" + worst);
+    var h = el("h3"); inline(h, p.title); li.appendChild(h);
+    var t = el("p"); inline(t, p.text); li.appendChild(t);
+    var refs = el("div", "refs");
+    var progress = stillOpen.length < fs.length || stillOpen.some(function (f) { return f.status === "partly"; });
+    if (progress) refs.appendChild(chip("partly", "Partly fixed"));
+    stillOpen.forEach(function (f) {
+      var a = el("a", null, f.file ? f.file + (f.line > 0 ? ":" + f.line : "") : "Finding");
+      a.href = "#f" + f.id;
+      refs.appendChild(a);
+    });
+    li.appendChild(refs);
+    prio.appendChild(li);
+  });
+  if (!prio.children.length) { document.getElementById("prio-head").hidden = true; prio.hidden = true; }
+
+  // Open issues by section
+  var sorted = open.slice().sort(function (a, b) { return (SEV_ORDER[a.severity] - SEV_ORDER[b.severity]) || (a.id - b.id); });
+  var cards = {};
+  var sections = {};
+  ["bugs", "risks", "shortcomings"].forEach(function (key) {
+    var sec = document.getElementById(key);
+    sections[key] = { list: sec.querySelector(".list"), n: sec.querySelector(".n"), empty: el("div", "empty", "Nothing open here.") };
+  });
+  sorted.forEach(function (f) {
+    var key = SECTION_OF[f.kind] || "shortcomings";
+    cards[f.id] = card(f, false);
+    sections[key].list.appendChild(cards[f.id]);
+  });
+  Object.keys(sections).forEach(function (k) { sections[k].list.appendChild(sections[k].empty); });
+
+  // Filters (apply to all three sections)
+  var q = document.getElementById("q"), design = document.getElementById("design"), count = document.getElementById("count");
+  var sevBtns = Array.prototype.slice.call(document.querySelectorAll(".seg button"));
+  var hay = {};
+  open.forEach(function (f) { hay[f.id] = [f.title, f.file, f.area, f.detail, f.suggestion, f.status_note, f.corrected].join(" ").toLowerCase(); });
+  function apply() {
+    var term = q.value.trim().toLowerCase();
+    var sevs = sevBtns.filter(function (b) { return b.getAttribute("aria-pressed") === "true"; }).map(function (b) { return b.dataset.sev; });
+    var shown = 0, per = { bugs: 0, risks: 0, shortcomings: 0 };
+    open.forEach(function (f) {
+      var ok = (!term || hay[f.id].indexOf(term) !== -1) && (!sevs.length || sevs.indexOf(f.severity) !== -1) && (!design.checked || f.design);
+      cards[f.id].hidden = !ok;
+      if (ok) { shown++; per[SECTION_OF[f.kind] || "shortcomings"]++; }
+    });
+    Object.keys(sections).forEach(function (k) {
+      sections[k].n.textContent = "(" + per[k] + ")";
+      sections[k].empty.hidden = per[k] !== 0;
+    });
+    count.textContent = "Showing " + shown + " of " + open.length + " open issues";
+  }
+  [q, design].forEach(function (c) { c.addEventListener("input", apply); c.addEventListener("change", apply); });
+  sevBtns.forEach(function (b) { b.addEventListener("click", function () { b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") === "true" ? "false" : "true"); apply(); }); });
+  apply();
+
+  // Open decisions
+  var openDecisions = (D.decisions || []).filter(function (x) { return x.status !== "decided"; });
+  if (openDecisions.length) {
+    document.getElementById("decisions").hidden = false;
+    document.getElementById("toc-decisions").hidden = false;
+    var dl = document.getElementById("decision-list");
+    openDecisions.forEach(function (x) {
+      var box = el("div", "decision");
+      var h = el("h3"); inline(h, x.title); box.appendChild(h);
+      var o = el("p", "opt"); inline(o, x.options); box.appendChild(o);
+      if (x.recommendation) { var r = el("p"); r.appendChild(el("b", null, "Recommended: ")); inline(r, x.recommendation); box.appendChild(r); }
+      dl.appendChild(box);
+    });
+  }
+
+  // Method
+  var ml = document.getElementById("method-list");
+  (D.method || []).forEach(function (m) { var li = el("li"); inline(li, m); ml.appendChild(li); });
+  var sums = document.getElementById("summaries");
+  (D.summaries || []).forEach(function (s) {
+    var d = el("details");
+    d.appendChild(el("summary", null, "What the " + s.area + " reviewer concluded"));
+    d.appendChild(renderText(s.text));
+    sums.appendChild(d);
+  });
+
+  // Change log, newest first
+  var log = document.getElementById("log");
+  var entries = (D.changelog || []).map(function (e, i) { return { e: e, i: i }; })
+    .sort(function (a, b) { return (b.e.date || "").localeCompare(a.e.date || "") || (b.i - a.i); });
+  if (!entries.length) log.appendChild(el("div", "empty", "No fixes yet."));
+  entries.forEach(function (x) {
+    var e = x.e, box = el("div", "entry");
+    box.appendChild(el("div", "when", fmtDate(e.date)));
+    var h = el("h3"); inline(h, e.title); box.appendChild(h);
+    if (e.detail) { var p = el("p"); inline(p, e.detail); box.appendChild(p); }
+    if (e.files && e.files.length) { var fl = el("div", "files"); inline(fl, "Files: " + e.files.map(function (f) { return "`" + f + "`"; }).join(", ")); box.appendChild(fl); }
+    var ids = (e.fixes || []).concat(e.partly || []);
+    if (ids.length) {
+      var lst = el("div", "list");
+      ids.forEach(function (id) { if (byId[id]) lst.appendChild(card(byId[id], true)); });
+      box.appendChild(lst);
+    }
+    log.appendChild(box);
+  });
+
+  var foot = [D.project + " code review"];
+  if (shortCommit()) foot.push("Line numbers and source links refer to commit " + shortCommit() + "; files changed since may have moved.");
+  document.getElementById("footer").textContent = foot.join(". ");
+
+  function reveal() {
+    var m = location.hash.match(/^#f(\d+)$/);
+    if (!m || !cards[+m[1]]) return;
+    var c = cards[+m[1]];
+    if (c.hidden) { q.value = ""; design.checked = false; sevBtns.forEach(function (b) { b.setAttribute("aria-pressed", "false"); }); apply(); }
+    c.open = true;
+    c.scrollIntoView({ block: "start" });
+  }
+  window.addEventListener("hashchange", reveal);
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest('a[href^="#f"]');
+    if (a && a.getAttribute("href") === location.hash) { e.preventDefault(); reveal(); }
+  });
+  reveal();
+})();
+</script>
