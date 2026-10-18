@@ -1,6 +1,14 @@
 {
   "name": "review-the-project",
+  "displayName": "review-the-project 1.0.4",
   "description": "Verified code review of a repository, published as a living review page (abstract, bugs, risks, shortcomings, change log) and a task board, kept up to date as fixes land.",
-  "version": "1.0.3",
-  "author": { "name": "Hiruth Marie Stautland" }
+  "version": "1.0.4",
+  "author": {
+    "name": "Hiruth Marie Stautland",
+    "url": "https://github.com/hmstautland"
+  },
+  "homepage": "https://github.com/hmstautland/skills/tree/main/plugins/review-the-project",
+  "repository": "https://github.com/hmstautland/skills",
+  "license": "MIT",
+  "keywords": ["code-review", "audit", "kanban", "github-projects"]
 }

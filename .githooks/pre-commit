@@ -77,6 +77,13 @@ def main() -> int:
         if replacements != 1:
             print(f"pre-commit: could not update version in {relative_manifest}", file=sys.stderr)
             return 1
+        # The /plugin list shows displayName, so it carries the version: "<name> <version>".
+        updated, _ = re.subn(
+            r'("displayName"\s*:\s*")' + re.escape(f"{data.get('name')} {version}") + r'(")',
+            lambda found: found.group(1) + f"{data.get('name')} {bumped}" + found.group(2),
+            updated,
+            count=1,
+        )
         updates.append((manifest, relative_manifest, updated))
 
     for manifest, relative_manifest, updated in updates:

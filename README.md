@@ -12,6 +12,8 @@ git config core.hooksPath .githooks
 
 The hook increments the patch version in the affected plugin's `.claude-plugin/plugin.json`
 whenever a staged change touches `plugins/`, and stages the updated manifest automatically.
+If the manifest's `displayName` is `<name> <version>`, the hook updates the version there too,
+so the `/plugin` list shows the current version next to the plugin's name.
 
 ## review-the-project
 
@@ -71,3 +73,7 @@ folder anywhere that serves static files.
 
 Python 3 (for the page builder), and the GitHub CLI for the optional GitHub project. The
 review data is kept in the reviewed project at `.review/review.json`.
+
+## License
+
+[MIT](LICENSE)
