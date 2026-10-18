@@ -73,7 +73,8 @@ user picked another place.
       "detail": "What changed, in a sentence or three.",
       "files": ["src/uploads/save.py"],
       "fixes": [7],
-      "partly": [12]
+      "partly": [12],
+      "found": [31, 32]
     }
   ]
 }
@@ -157,7 +158,8 @@ finding moved to Done is a claim that it is fixed: check the code, then mark it
 `fixed` (with a change-log entry) or leave it in `doing` and say why.
 
 **Change log** — one entry per coherent change. `fixes` lists findings that are
-now `fixed`, `partly` those now `partly`. The builder refuses to build when a
+now `fixed`, `partly` those now `partly`, and `found` lists findings first reported
+in that entry (used by a re-review; the page links to them). The builder refuses to build when a
 fixed or partly-fixed finding is not listed in some entry, or an entry lists a
 finding whose status doesn't match.
 

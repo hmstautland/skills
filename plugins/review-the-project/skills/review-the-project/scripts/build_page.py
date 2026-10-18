@@ -76,6 +76,9 @@ def validate(data):
                 elif by_id[fid]["status"] != want:
                     errors.append(f"{where}: lists finding {fid} under '{key}' but its status is '{by_id[fid]['status']}'")
                 bucket.add(fid)
+        for fid in entry.get("found", []):
+            if fid not in by_id:
+                errors.append(f"{where}: found refers to unknown finding {fid}")
 
     for fid, f in by_id.items():
         if f.get("status") == "fixed" and fid not in referenced_fixed:

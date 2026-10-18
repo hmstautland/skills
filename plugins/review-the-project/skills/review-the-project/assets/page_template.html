@@ -501,6 +501,19 @@ html { scroll-behavior: smooth; scroll-padding-top: 90px; }
       ids.forEach(function (id) { if (byId[id]) lst.appendChild(card(byId[id], true)); });
       box.appendChild(lst);
     }
+    // Findings this entry discovered (a re-review): links, since the cards live in the open lists.
+    var found = (e.found || []).filter(function (id) { return byId[id]; });
+    if (found.length) {
+      var fp = el("p", "files", "New findings: ");
+      found.forEach(function (id, i) {
+        var f = byId[id], a = el("a", null, f.title);
+        a.href = "#f" + id;
+        if (i) fp.appendChild(document.createTextNode(" · "));
+        fp.appendChild(a);
+        if (f.status === "fixed") fp.appendChild(document.createTextNode(" (since fixed)"));
+      });
+      box.appendChild(fp);
+    }
     log.appendChild(box);
   });
 

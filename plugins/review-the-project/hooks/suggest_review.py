@@ -55,7 +55,8 @@ def context_for(prompt: str, review: Path | None) -> str | None:
     if review and wants_review:
         return (
             f"This project has an existing review at {review}. Before acting, ask whether "
-            f"they want the {SKILL} skill to update that review page. {ASK}"
+            f"they want the {SKILL} skill to update that review (check changes since the "
+            f"last update) or re-review the whole project into the same page. {ASK}"
         )
     if review and wants_fix:
         return (

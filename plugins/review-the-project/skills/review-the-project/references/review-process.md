@@ -146,3 +146,23 @@ Task schema: `{"title", "text", "area", "files": [], "effort": "small|medium|lar
 - `summaries`: each reviewer's `summary`, so readers can see the overall conclusions.
 - `tasks`: the proposed tasks with stable integer ids, `column: "backlog"` and
   `source: "review"`.
+
+## Merging a re-review
+
+Use this instead of writing a new file when `.review/review.json` already exists.
+
+- **Match** each verified result to the open findings: same root cause in the same code,
+  even if the line moved or the wording differs. A match keeps the existing `id`, issue and
+  `column`; update `file`, `line`, `detail` and `severity` to the current code and keep the
+  better write-up. If the result shows a partly fixed finding is now fully fixed, or a fixed
+  one has come back, change its status (a finding that came back becomes a new finding,
+  since the old one's fix is history).
+- **Not reproduced**: an open finding no reviewer reported again is not automatically
+  fixed. Re-check it from the code. If the problem is gone, set `status: "fixed"` with a
+  `status_note` saying what removed it (a commit or the code that now prevents it). If it
+  is still there, keep it open.
+- **New**: results with no match get the next free ids and go in the re-review's change-log
+  entry under `found`.
+- Never renumber or delete findings; fixed ones stay for the change log. Keep `tasks` and
+  their ids; add new suggestions and mark tasks done if the code now does them.
+

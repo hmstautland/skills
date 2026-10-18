@@ -12,11 +12,17 @@ only in the change log, and every count is a count of what is still open. A seco
 the task board, turns the findings and suggested improvements into cards in Backlog,
 To do, In progress and Done.
 
-Three modes:
-- **New review** — no `.review/review.json` in the project yet (or the user wants a fresh one).
+Four modes:
+- **New review** — no `.review/review.json` in the project yet.
 - **Update** — the file exists: fixes landed, the user asks to refresh the page, or you just
   fixed something a review listed. Updating is the common case; do it without being asked
-  after you fix a reviewed issue, and say that you did.
+  after you fix a reviewed issue, and say that you did. An update checks the changes since
+  the last update; it doesn't re-scan the whole project.
+- **Re-review** — the file exists and the user asks for a full review again ("review the
+  project again", "a fresh review"). Run the whole review and merge it into the existing
+  file and page (below), so the change log shows what was fixed and what is new since the
+  last review. Start over from an empty file only if the user explicitly asks to discard
+  the history, and even then publish to the same page.
 - **Board changes** — the user pastes text from the task board's "Copy my changes" button.
   Apply it as described in `references/data-format.md` (Board changes), then rebuild and
   publish as in Update.
@@ -79,6 +85,32 @@ These instructions name tools by what they do. Use whatever your agent has:
    don't recount the fixes there; that history lives in the change log.
 7. Build and publish again (to the same `artifact_url`, where there is one).
 8. If review.json has a `tracker`, sync it (below).
+
+## Re-review
+
+1. Read `references/review-process.md` and run it as for a new review, against the current
+   commit. Give the reviewers the titles of the open findings so they report each one again
+   if it still holds, rather than treating it as new.
+2. Merge, as described in `references/review-process.md` (Merging a re-review): a result that
+   matches an existing finding keeps its id; an open finding that no reviewer reproduced is
+   re-checked and marked `fixed` if it is gone; everything else is new, with a fresh id.
+3. Add one `changelog` entry for the re-review, e.g. "Re-review at `<short commit>`", with the
+   fixed findings under `fixes` and the new ones under `found`.
+4. Set `commit` and `reviewed` to the new review, `updated` to today, then continue from
+   Update step 5 (tasks, abstract and priorities, build and publish, tracker sync). The
+   tracker stays the same GitHub project: fixed findings close their issues and new ones
+   get issues.
+
+## One page per project
+
+A project has one review page, at `artifact_url`, and its change log is the history. Always
+publish to that URL. If you can't (the page was deleted, or the user can't edit it) or you
+find an earlier review page for the same project (an older `artifact_url` the user mentions,
+or one listed among the user's artifacts with the same project's review title), then once
+the current page is published, ask the user whether to delete the older page, saying that
+its findings are covered by the change log. Delete it only when they confirm; deleting
+can't be undone and breaks the link for anyone it was shared with. Without the Artifact
+tool there is nothing to delete: the build always replaces `.review/site/`.
 
 ## Build and publish
 

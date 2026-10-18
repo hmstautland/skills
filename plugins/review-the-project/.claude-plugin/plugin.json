@@ -1,8 +1,8 @@
 {
   "name": "review-the-project",
-  "displayName": "review-the-project 1.0.4",
+  "displayName": "review-the-project 1.0.5",
   "description": "Verified code review of a repository, published as a living review page (abstract, bugs, risks, shortcomings, change log) and a task board, kept up to date as fixes land.",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "author": {
     "name": "Hiruth Marie Stautland",
     "url": "https://github.com/hmstautland"
